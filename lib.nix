@@ -1,7 +1,9 @@
 { lib, ... }:
 {
   flake.lib.droidManagerConfiguration =
-    { modules }:
+    { pkgs
+    , modules
+    }:
     let
       inherit (lib)
         evalModules;
@@ -10,8 +12,11 @@
         modules = [
           ./modules
         ] ++ modules;
+        specialArgs = {
+          inherit pkgs;
+        };
       };
-      activationPackage = evaluatedModules;
+      activationPackage = evaluatedModules.config.build.activationPackage;
     in
       activationPackage;
 }
