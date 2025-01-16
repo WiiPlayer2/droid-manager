@@ -1,14 +1,34 @@
 {
   description = "Android Manager based on Nix";
 
+  nixConfig = {
+    trusted-substituters = [
+      "https://nix-on-droid.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nix-on-droid.cachix.org-1:56snoMJTXmDRC1Ei24CmKoUqvHJ9XCp+nidK7qkMQrU="
+    ];
+  };
+
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nix-bundle = {
+      url = "github:nix-community/nix-bundle";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs-for-bootstrap.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
+        ./bundlers
+        ./flake-modules
         ./pkgs
 
         ./lib.nix
