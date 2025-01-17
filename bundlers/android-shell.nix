@@ -57,14 +57,14 @@ let
 
   sedScript = pkgs.writeText "android-shell-sed-script" ''
     0,/hexdump/{s/hexdump.*urandom/dd if=\/dev\/urandom bs=4 count=1 2>\/dev\/null | base64/}
-    0,/tmpdir=\/$HOME\/.cache/{s/tmpdir=\/$HOME\/.cache/tmpdir=\/sdcard\/.cache/}
+    0,/tmpdir=\/$HOME\/.cache/{s/tmpdir=\/$HOME\/.cache/tmpdir=\/tmp\/.cache/}
 
-    62s/.*/  [ -f \/tmp\/env-$hash ] || unpack_env > \/tmp\/env-$hash/
-    63s/.*/  [ -f \/tmp\/run-$hash ] || unpack_run > \/tmp\/run-$hash/
-    64s/.*/  chmod ug+x \/tmp\/run-$hash/
-    65,70s/dat/\/tmp\/dat-$hash/
-    75s/..\/env/\/tmp\/env-$hash/
-    75s/..\/run/\/tmp\/run-$hash/
+    62s/.*/  [ -f \/tmp\/env ] || unpack_env > \/tmp\/env/
+    63s/.*/  [ -f \/tmp\/run ] || unpack_run > \/tmp\/run/
+    64s/.*/  chmod ug+x \/tmp\/run/
+    65,70s/dat/\/tmp\/dat/
+    75s/..\/env/\/tmp\/env/
+    75s/..\/run/\/tmp\/run/
 
     # 0,/unset/{s/-e/-x -e/}
   '';

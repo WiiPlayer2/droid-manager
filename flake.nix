@@ -50,7 +50,7 @@
             (
               { pkgs, ... }:
               {
-                build.activation.default.printenv = ''
+                build.activation.device.default.printenv = ''
                   printenv
                 '';
               }

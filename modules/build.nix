@@ -1,4 +1,4 @@
-{ lib, config, pkgs, ... }:
+{ lib, config, pkgs, inputs, ... }:
 let
   inherit (lib)
     mkOption
@@ -12,7 +12,14 @@ let
     default = {};
   };
 
-  activationScript =
+  mkTargetActivationOption = description: {
+    early = mkActivationOption "Early activation scripts (${description})";
+    default = mkActivationOption "Activation scripts (${description})";
+    late = mkActivationOption "Late activation scripts (${description})";
+  };
+
+  mkTargetActivationScript =
+    target: cfg:
     let
       mkActivationScript =
         { name, value }:
@@ -20,7 +27,7 @@ let
       mkActivationScriptInvocation =
         { name, value } @ script:
         ''
-          noteEcho "[Activating ${name}]"
+          noteEcho "[Activating ${name} on ${target}]"
           ${mkActivationScript script}
         '';
       mkActivationBlock =
@@ -32,10 +39,8 @@ let
           mkActivationScriptInvocation
           (attrsToList block)
         );
-
-      cfg = config.build.activation;
     in
-    pkgs.writeScript "activation-script" ''
+    pkgs.writeScript "${target}-activation-script" ''
       ${builtins.readFile ./lib-bash/color-echo.sh}
       ${builtins.readFile ./lib-bash/activation-init.sh}
       
@@ -43,13 +48,14 @@ let
       ${mkActivationBlock cfg.default}
       ${mkActivationBlock cfg.late}
     '';
+
+  activationScript = mkTargetActivationScript "host" config.build.activation.host;
 in
 {
   options.build = {
     activation = {
-      early = mkActivationOption "Early activation scripts";
-      default = mkActivationOption "Activation scripts";
-      late = mkActivationOption "Late activation scripts";
+      device = mkTargetActivationOption "device";
+      host = mkTargetActivationOption "host";
     };
 
     activationPackage = mkOption {
@@ -61,19 +67,51 @@ in
   };
 
   config.build = {
+    activation.host.default.activate-device =
+      let
+        deviceActivationScript = mkTargetActivationScript "device" config.build.activation.device;
+        bundledActivationScript = inputs.self.bundlers.${pkgs.system}.androidShell (
+          let
+            name = "device-activation-script";
+          in
+          pkgs.runCommandLocal
+          name
+          {
+            pname = name;
+            meta.mainProgram = "activate";
+          }
+          ''
+            mkdir --parents $out/bin
+            ln -s ${deviceActivationScript} $out/bin/activate
+          ''
+        );
+        script =
+          let
+            adb = "${pkgs.android-tools}/bin/adb";
+          in
+          ''
+            # TODO: verbose and dry-run
+            set -e
+            ${adb} push ${bundledActivationScript} /tmp/activate
+            trap "${adb} shell rm -r /tmp/activate /tmp/dat /tmp/run /tmp/env" EXIT
+            ${adb} shell /tmp/activate
+          '';
+      in
+        script;
+
     activationPackage =
-      pkgs.runCommand
-      "droid-manager-generation"
+      let
+        name = "droid-manager-activate";
+      in
+      pkgs.runCommandLocal
+      name
       {
-        pname = "droid-manager-generation";
-        preferLocalBuild = true;
-        allowSubstitutes = false;
+        pname = name;
         meta.mainProgram = "activate";
       }
       ''
         mkdir --parents $out/bin
-
-        cp ${activationScript} $out/bin/activate
+        ln -s ${activationScript} $out/bin/activate
       '';
   };
 }
