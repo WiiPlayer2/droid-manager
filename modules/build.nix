@@ -2,7 +2,9 @@
 let
   inherit (lib)
     mkOption
-    types;
+    types
+    concatStringsSep
+    attrsToList;
 
   mkActivationOption = description: mkOption {
     inherit description;
@@ -10,9 +12,37 @@ let
     default = {};
   };
 
-  activationScript = pkgs.writeScript "activation-script" ''
-    echo hi
-  '';
+  activationScript =
+    let
+      mkActivationScript =
+        { name, value }:
+        pkgs.writeScript name value;
+      mkActivationScriptInvocation =
+        { name, value } @ script:
+        ''
+          noteEcho "[Activating ${name}]"
+          ${mkActivationScript script}
+        '';
+      mkActivationBlock =
+        block:
+        concatStringsSep
+        "\n"
+        (
+          map
+          mkActivationScriptInvocation
+          (attrsToList block)
+        );
+
+      cfg = config.build.activation;
+    in
+    pkgs.writeScript "activation-script" ''
+      ${builtins.readFile ./lib-bash/color-echo.sh}
+      ${builtins.readFile ./lib-bash/activation-init.sh}
+      
+      ${mkActivationBlock cfg.early}
+      ${mkActivationBlock cfg.default}
+      ${mkActivationBlock cfg.late}
+    '';
 in
 {
   options.build = {
