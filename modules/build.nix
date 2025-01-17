@@ -35,13 +35,15 @@ in
       pkgs.runCommand
       "droid-manager-generation"
       {
+        pname = "droid-manager-generation";
         preferLocalBuild = true;
         allowSubstitutes = false;
+        meta.mainProgram = "activate";
       }
       ''
-        mkdir --parents $out
+        mkdir --parents $out/bin
 
-        cp ${activationScript} $out/activate
+        cp ${activationScript} $out/bin/activate
       '';
   };
 }

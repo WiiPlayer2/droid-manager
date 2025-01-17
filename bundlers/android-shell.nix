@@ -33,12 +33,20 @@ let
     .${prootPkg}/bin/proot-static -b ./nix:/nix ${programPath} "$@"
   '';
 
+  fix-drv-pname =
+    with lib;
+    drv:
+    if hasAttr "pname" drv
+    then drv
+    else drv.overrideAttrs {
+      pname = drv.name;
+    };
   nix-bundle-imported = import nix-bundle { nixpkgs = pkgs; };
   nix-bundle-fun =
     drv:
     nix-bundle-imported.makebootstrap {
-      drvToBundle = drv;
-      targets = [ script ];
+      drvToBundle = fix-drv-pname drv;
+      targets = [ script drv ];
       startup = ".${builtins.unsafeDiscardStringContext script} '\"$@\"'";
     };
 
