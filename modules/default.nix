@@ -1,5 +1,7 @@
 {
   imports = [
+    ./environment
+
     ./build.nix
   ];
 }

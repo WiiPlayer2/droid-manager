@@ -30,6 +30,7 @@
       imports = [
         inputs.pkgs-by-name-for-flake-parts.flakeModule
 
+        ./apks
         ./bundlers
         ./flake-modules
         ./pkgs
@@ -48,10 +49,13 @@
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
           modules = [
             (
-              { pkgs, ... }:
+              { pkgs, apks, ... }:
               {
+                environment.apps = with apks; [
+                  f-droid
+                ];
                 build.activation.device.default.printenv = ''
-                  printenv
+                  echo "henlo dere"
                 '';
               }
             )

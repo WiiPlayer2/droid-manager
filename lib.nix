@@ -14,6 +14,7 @@
         ] ++ modules;
         specialArgs = {
           inherit pkgs inputs;
+          apks = inputs.self.androidApps.${pkgs.system};
         };
       };
       activationPackage = evaluatedModules.config.build.activationPackage;
