@@ -8,7 +8,8 @@
             fix
             extends
             callPackageWith
-            removeSuffix;
+            removeSuffix
+            packagesFromDirectoryRecursive;
 
           appsBase = final: {
             inherit (pkgs) fetchurl system;
@@ -28,13 +29,13 @@
                 inherit hash;
               };
           };
-          appsOverlay = final: prev: {
-            callPackage = final.callPackage or (callPackageWith (prev // final));
-
-            f-droid = prev.callPackage ./by-name/f-droid.nix {};
+          appsFix = fix appsBase;
+          appsByName = packagesFromDirectoryRecursive {
+            inherit (appsFix) callPackage;
+            directory = ./by-name;
           };
-          appsFix = fix (extends appsOverlay appsBase);
+          apps = appsFix // appsByName;
         in
-          appsFix;
+          apps;
     };
 }
