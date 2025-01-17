@@ -3,6 +3,7 @@
 , nix-on-droid
 , nixpkgs
 , self
+, self'
 }:
 drv:
 let
@@ -26,7 +27,7 @@ let
 
   programPath = getExe drv;
 
-  prootPkg = nix-on-droid.packages.${system}.prootTermux-aarch64;
+  prootPkg = self'.packages.proot-static;
 
   script = pkgs.writeScript "startup-script" ''
     #!/bin/sh
