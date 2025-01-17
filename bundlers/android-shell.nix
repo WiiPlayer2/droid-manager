@@ -1,4 +1,4 @@
-{ pkgs
+{ system
 , nix-bundle
 , nix-on-droid
 , nixpkgs
@@ -7,6 +7,80 @@
 drv:
 let
   lib = pkgs.lib;
+  # overlay = final: prev: {
+  #   # talloc = prev.talloc.overrideAttrs {
+  #   #   nativeBuildInputs = prev.talloc.drvAttrs.nativeBuildInputs ++ [
+  #   #     prev.glibc
+  #   #   ];
+  #   # };
+  #   talloc = prev.callPackage ../pkgs/talloc-static.nix {
+  #     stdenv = prev.stdenvAdapters.makeStaticBinaries prev.stdenv;
+  #   };
+  #   prootTermux = (prev.callPackage "${nix-on-droid}/pkgs/proot-termux" {
+  #     stdenv = prev.stdenvAdapters.makeStaticBinaries prev.stdenv;
+  #   }).overrideAttrs {
+  #     buildInputs = [
+  #       prev.talloc
+  #       prev.glibc.static
+  #     ];
+  #   };
+  #   tzdata = prev.tzdata.overrideAttrs {
+  #     # buildInputs = [
+  #     #   prev.glibc.static
+  #     # ];
+  #     makeFlags = prev.tzdata.drvAttrs.makeFlags ++ [
+  #       "CFLAGS+=-I${prev.glibc.static}/include"
+  #     ];
+  #   };
+  #   zlib = prev.zlib.overrideAttrs {
+  #     buildInputs = prev.zlib.drvAttrs.buildInputs ++ [
+  #       prev.libgcc
+  #     ];
+  #     # makeFlags = prev.zlib.drvAttrs.makeFlags ++ [
+  #     #   "CFLAGS+=-I${prev.glibc.static}/include"
+  #     # ];
+  #   };
+  #   python3 = prev.python3.overrideAttrs {
+  #     buildInputs = prev.python3.drvAttrs.buildInputs ++ [
+  #       prev.libgcc
+  #     ];
+  #   };
+  #   gobject-introspection =
+  #     let
+  #       pythonModules = pp: [
+  #         pp.mako
+  #         pp.markdown
+  #         pp.setuptools
+  #         pp.distutils
+  #       ];
+  #       buildPackagesPython3WithModules = prev.buildPackages.python3.withPackages pythonModules;
+  #       buildPackagesWithPython3WithModules = prev.buildPackages // {
+  #         python3 = buildPackagesPython3WithModules;
+  #       };
+  #       python3WithModules = prev.python3.withPackages pythonModules;
+  #     in
+  #       # prev.gobject-introspection.override {
+  #       #   buildPackages = buildPackagesWithPython3WithModules;
+  #       #   python3 = python3WithModules;
+  #       # };
+  #       # prev.gobject-introspection.overrideAttrs {
+  #       #   nativeBuildInputs = [
+  #       #     # buildPackagesPython3WithModules
+  #       #   # ] ++ prev.gobject-introspection.drvAttrs.nativeBuildInputs ++ [
+  #       #   #   buildPackagesPython3WithModules
+  #       #   ];
+  #       #   buildInputs = [
+  #       #     # python3WithModules
+  #       #   # ] ++ prev.gobject-introspection.drvAttrs.buildInputs ++ [
+  #       #   #   python3WithModules
+  #       #   ];
+  #       # };
+  #       {};
+  # };
+  pkgs = import nixpkgs {
+    inherit system;
+    # overlays = [ overlay ];
+  };
 
   # https://github.com/nix-community/nix-bundle/blob/4f6330b20767744a4c28788e3cdb05e02d096cd8/flake.nix
   getExe =
@@ -23,52 +97,22 @@ let
 
   programPath = getExe drv;
 
-  crossArgs = {
-    system = pkgs.system;
-    crossSystem =
-      let
-        arch = lib.strings.removeSuffix "-linux" pkgs.system;
-      in
-      {
-        config = "${arch}-unknown-linux-android";
-        sdkVerVersion = "32";
-        libc = "bionic";
-        useAndroidPrebuilt = false;
-        useLLVM = true;
-        isStatic = true;
-      };
-  };
-  pkgsCross-imported = import nixpkgs crossArgs;
-  pkgsCross-patched = pkgsCross-imported.applyPatches {
-    name = "nixpkgs-crosscompilation-patched";
-    src = nixpkgs;
-    patches = [
-      "${nix-on-droid}/pkgs/cross-compiling/compiler-rt.patch"
-      "${nix-on-droid}/pkgs/cross-compiling/libunwind.patch"
-    ];
-  };
-  pkgsCross = import pkgsCross-patched crossArgs;
-  stdenv = pkgsCross.stdenvAdapters.makeStaticBinaries pkgsCross.stdenv;
-
-  talloc = self.packages.${pkgs.system}.talloc-static;
-  # prootTermux = (pkgsCross.callPackage "${nix-on-droid}/pkgs/proot-termux" {
-  #   inherit stdenv;
-  # }).overrideAttrs {
-  #   buildInputs = [
-  #     talloc
-  #     pkgs.glibc.static
-  #   ];
+  # pkgsAndroid = pkgs.pkgsCross.aarch64-android-prebuilt;
+  prootPkg = nix-on-droid.packages.${system}.prootTermux-aarch64;
+  # prootPkg = pkgsAndroid.proot.override {
+  #   enablePython = false;
+  #   stdenv = staticStdenv;
   # };
-  prootTermux = nix-on-droid.packages.aarch64-linux.prootTermux-aarch64;
 
   script = pkgs.writeScript "startup-script" ''
     #!/bin/sh
-    .${prootTermux}/bin/proot-static -b ./nix:/nix ${programPath} "$@"
+    .${prootPkg}/bin/proot-static -b ./nix:/nix ${programPath} "$@"
   '';
 
+  nix-bundle-imported = import nix-bundle { nixpkgs = pkgs; };
   nix-bundle-fun =
     drv:
-    nix-bundle.makebootstrap {
+    nix-bundle-imported.makebootstrap {
       drvToBundle = drv;
       # targets = [ script ];
       targets = [ script ];
