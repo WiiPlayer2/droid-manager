@@ -1,5 +1,6 @@
-{ fetchurl }:
-fetchurl {
-  url = "https://f-droid.org/repo/org.fdroid.fdroid_1021051.apk";
+{ fetchFromFDroid }:
+fetchFromFDroid {
+  name = "org.fdroid.fdroid";
+  revision = "1021051"; # multiarch
   hash = "sha256-tkZRhJ7OtXRZBJ5wF+BDAI/OjxRqrR002Y8AJ9h+Tu8=";
 }
