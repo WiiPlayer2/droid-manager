@@ -93,7 +93,7 @@ in
             # TODO: verbose and dry-run
             set -e
             ${adb} push ${bundledActivationScript} /tmp/activate
-            trap "${adb} shell rm -r /tmp/activate /tmp/dat /tmp/run /tmp/env" EXIT
+            trap "${adb} shell rm -r /tmp/activate /tmp/dat /tmp/run /tmp/env /tmp/.cache" EXIT
             ${adb} shell /tmp/activate
           '';
       in
