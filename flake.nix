@@ -22,11 +22,14 @@
       # inputs.nixpkgs.follows = "nixpkgs";
       # inputs.nixpkgs-for-bootstrap.follows = "nixpkgs";
     };
+    pkgs-by-name-for-flake-parts.url = "github:drupol/pkgs-by-name-for-flake-parts";
   };
 
   outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
+        inputs.pkgs-by-name-for-flake-parts.flakeModule
+
         ./bundlers
         ./flake-modules
         ./pkgs
@@ -35,12 +38,7 @@
       ];
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { config, self', inputs', pkgs, system, ... }: {
-        # Per-system attributes can be defined here. The self' and inputs'
-        # module parameters provide easy access to attributes of the same
-        # system.
-
-        # Equivalent to  inputs'.nixpkgs.legacyPackages.hello;
-        packages.default = pkgs.hello;
+        pkgsDirectory = ./pkgs;
       };
       flake = {
         # The usual flake attributes can be defined here, including system-
