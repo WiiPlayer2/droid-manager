@@ -47,7 +47,7 @@
         # agnostic ones like nixosModule and system-enumerating ones, although
         # those are more easily expressed in perSystem.
         droidManagerConfigurations.example = self.lib.droidManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          pkgs = nixpkgs.legacyPackages.aarch64-linux;
           modules = [];
         };
       };
