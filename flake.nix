@@ -48,7 +48,16 @@
         # those are more easily expressed in perSystem.
         droidManagerConfigurations.example = self.lib.droidManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.aarch64-linux;
-          modules = [];
+          modules = [
+            (
+              { pkgs, ... }:
+              {
+                build.activation.default.printenv = ''
+                  printenv
+                '';
+              }
+            )
+          ];
         };
       };
     };
