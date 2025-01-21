@@ -1,3 +1,4 @@
+{ inputs, ... }:
 {
   perSystem =
     { pkgs, lib, ... }:
@@ -13,6 +14,16 @@
 
           appsBase = final: {
             inherit (pkgs) fetchurl system;
+            hostPkgs.x86_64-linux = (import inputs.nixpkgs {
+              system = "x86_64-linux";
+              config = {
+                android_sdk.accept_license = true;
+                allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+                  "android-sdk-cmdline-tools"
+                  "android-sdk-tools"
+                ];
+              };
+            });
             callPackage = callPackageWith final;
             fetchFromFDroid =
               { name

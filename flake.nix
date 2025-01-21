@@ -23,6 +23,23 @@
       # inputs.nixpkgs-for-bootstrap.follows = "nixpkgs";
     };
     pkgs-by-name-for-flake-parts.url = "github:drupol/pkgs-by-name-for-flake-parts";
+    android-nixpkgs = {
+      url = "github:tadfisher/android-nixpkgs";
+
+      # The main branch follows the "canary" channel of the Android SDK
+      # repository. Use another android-nixpkgs branch to explicitly
+      # track an SDK release channel.
+      #
+      # url = "github:tadfisher/android-nixpkgs/stable";
+      # url = "github:tadfisher/android-nixpkgs/beta";
+      # url = "github:tadfisher/android-nixpkgs/preview";
+      # url = "github:tadfisher/android-nixpkgs/canary";
+
+      # If you have nixpkgs as an input, this will replace the "nixpkgs" input
+      # for the "android" flake.
+      #
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
@@ -33,7 +50,6 @@
         ./apks
         ./bundlers
         ./flake-modules
-        ./pkgs
 
         ./lib.nix
       ];
@@ -46,12 +62,13 @@
         # agnostic ones like nixosModule and system-enumerating ones, although
         # those are more easily expressed in perSystem.
         droidManagerConfigurations.example = self.lib.droidManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.aarch64-linux;
+          deviceSystem = "aarch64-linux";
           modules = [
             (
               { pkgs, apks, ... }:
               {
                 environment.apps = with apks; [
+                  droid-manager-app
                   f-droid
                 ];
                 build.activation.device.default.printenv = ''
