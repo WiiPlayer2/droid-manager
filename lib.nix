@@ -4,6 +4,7 @@
     { deviceSystem
     , hostSystem ? "x86_64-linux" # Assuming x64 by default due to it being the most probably answer and also most likely to work compiling on
     , modules
+    , isRooted ? false
     }:
     let
       inherit (lib)
@@ -25,6 +26,9 @@
       evaluatedModules = evalModules {
         modules = [
           ./modules
+          {
+            build.activation.enableRoot = isRooted;
+          }
         ] ++ modules;
         specialArgs = {
           inherit inputs;

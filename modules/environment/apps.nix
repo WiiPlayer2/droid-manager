@@ -12,7 +12,7 @@ in
 
   config = {
     build.activation.host.early = mkIf (length cfg > 0) {
-      install-apks =
+      install-apks.script =
         let
           apksPaths = concatStringsSep " " cfg;
           adb = "${pkgs.android-tools}/bin/adb";

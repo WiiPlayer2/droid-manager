@@ -7,11 +7,22 @@ let
     attrsToList
     map
     filter
-    makeBinPath;
+    makeBinPath
+    warn;
 
   mkActivationOption = description: mkOption {
     inherit description;
-    type = with types; attrsOf str;
+    type = with types; attrsOf (submodule {
+      options = {
+        script = mkOption {
+          type = str;
+        };
+        needsRoot = mkOption {
+          type = bool;
+          default = false;
+        };
+      };
+    });
     default = {};
   };
 
@@ -26,13 +37,22 @@ let
     let
       mkActivationScript =
         { name, value }:
-        pkgs.writeScript name value;
+        pkgs.writeScript name value.script;
       mkActivationScriptInvocation =
         { name, value } @ script:
+        let
+          displayName =
+            if value.needsRoot
+            then warn "Activation \"${name}\" on ${target} needs root to execute." "${name} (using root)"
+            else name;
+        in
         ''
-          noteEcho "[Activating ${name} on ${target}]"
+          noteEcho "[Activating ${displayName} on ${target}]"
           ${mkActivationScript script}
         '';
+      canExecute =
+        { name, value }:
+        !value.needsRoot || config.build.activation.enableRoot;
       mkActivationBlock =
         block:
         concatStringsSep
@@ -40,7 +60,11 @@ let
         (
           map
           mkActivationScriptInvocation
-          (attrsToList block)
+          (
+            filter
+            canExecute
+            (attrsToList block)
+          )
         );
     in
     pkgs.writeScript "${target}-activation-script" ''
@@ -59,6 +83,10 @@ in
     activation = {
       device = mkTargetActivationOption "device";
       host = mkTargetActivationOption "host";
+      enableRoot = mkOption {
+        type = types.bool;
+        default = false;
+      };
     };
 
     activationPackage = mkOption {
@@ -70,7 +98,7 @@ in
   };
 
   config.build = {
-    activation.host.default.activate-device =
+    activation.host.default.activate-device.script =
       let
         deviceActivationScript = mkTargetActivationScript "device" config.build.activation.device;
         deviceActivationPackage = 

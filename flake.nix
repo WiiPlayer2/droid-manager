@@ -68,6 +68,7 @@
         # those are more easily expressed in perSystem.
         droidManagerConfigurations.example = self.lib.droidManagerConfiguration {
           deviceSystem = "aarch64-linux";
+          isRooted = true;
           modules = [
             (
               { pkgs, apks, ... }:
@@ -75,6 +76,14 @@
                 environment.apps = with apks; [
                   f-droid
                 ];
+
+                build.activation.device.default = {
+                  hello-world.script = "echo hello world";
+                  hello-world-root = {
+                    script = "echo hello rooted world";
+                    needsRoot = true;
+                  };
+                };
               }
             )
           ];

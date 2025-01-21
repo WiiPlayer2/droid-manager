@@ -22,7 +22,7 @@ in
       droid-manager-app
     ];
 
-    build.activation.device.default.set-wallpaper =
+    build.activation.device.default.set-wallpaper.script =
       let
         mkIntentCall =
           { file
