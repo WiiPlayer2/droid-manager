@@ -11,7 +11,7 @@ in
 mkTransposedPerSystemModule {
   name = "androidApps";
   option = mkOption {
-    type = with types; lazyAttrsOf package;
+    type = with types; lazyAttrsOf pathInStore;
     default = { };
     description = ''
       An attribute set of Android apps

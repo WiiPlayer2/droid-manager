@@ -12,9 +12,10 @@
       configured-nixpkgs = system: import inputs.nixpkgs {
         inherit system;
         overlays = [
-          # (final: prev: {
-          #   android-sdk = inputs.android-nixpkgs.${prev.system}.
-          # })
+          (final: prev: {
+            # android-sdk = inputs.android-nixpkgs.${prev.system}.
+            make-wrapper = inputs.make-wrapper.packages.${prev.system}.make-wrapper;
+          })
         ];
         config = {
           android_sdk.accept_license = true;

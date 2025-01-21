@@ -4,7 +4,10 @@ let
     mkOption
     types
     concatStringsSep
-    attrsToList;
+    attrsToList
+    map
+    filter
+    makeBinPath;
 
   mkActivationOption = description: mkOption {
     inherit description;
@@ -70,9 +73,12 @@ in
     activation.host.default.activate-device =
       let
         deviceActivationScript = mkTargetActivationScript "device" config.build.activation.device;
-        bundledActivationScript = inputs.self.bundlers.${pkgs.system}.androidShell (
+        deviceActivationPackage = 
           let
             name = "device-activation-script";
+            availableScripts = with pkgs; [
+              (writeShellScriptBin "from-store" "echo \"/tmp/dat$1\"")
+            ];
           in
           pkgs.runCommandLocal
           name
@@ -83,8 +89,10 @@ in
           ''
             mkdir --parents $out/bin
             ln -s ${deviceActivationScript} $out/bin/activate
-          ''
-        );
+            ${pkgs.make-wrapper}/bin/wrapProgram $out/bin/activate \
+              --prefix PATH : ${makeBinPath availableScripts}
+          '';
+        bundledActivationScript = inputs.self.bundlers.${pkgs.system}.androidShell deviceActivationPackage;
         script =
           let
             adb = "${pkgs.android-tools}/bin/adb";

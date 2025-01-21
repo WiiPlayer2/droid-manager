@@ -40,6 +40,10 @@
       #
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    make-wrapper = {
+      url = "github:polygon/make-wrapper";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, flake-parts, nixpkgs, ... }:
@@ -50,6 +54,7 @@
         ./apks
         ./bundlers
         ./flake-modules
+        ./pkgs
 
         ./lib.nix
       ];
@@ -68,12 +73,8 @@
               { pkgs, apks, ... }:
               {
                 environment.apps = with apks; [
-                  droid-manager-app
                   f-droid
                 ];
-                build.activation.device.default.printenv = ''
-                  echo "henlo dere"
-                '';
               }
             )
           ];

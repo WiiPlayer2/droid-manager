@@ -6,7 +6,7 @@ in
 {
   options.environment.apps = mkOption {
     description = "The Android apps to be installed on the device.";
-    type = with types; listOf package;
+    type = with types; listOf pathInStore;
     default = [];
   };
 
