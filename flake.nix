@@ -78,6 +78,15 @@
                   kvaesitso.enable = true;
                 };
 
+                environment.files.root."/tmp/test" = {
+                  content = "test";
+                };
+
+                environment.files.root."/tmp/test-root" = {
+                  content = "test-root";
+                  needsRoot = true;
+                };
+
                 build.activation.device.default = {
                   hello-world.script = "echo hello world";
                   hello-world-root = {

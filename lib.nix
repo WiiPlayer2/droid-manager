@@ -16,6 +16,7 @@
           (final: prev: {
             # android-sdk = inputs.android-nixpkgs.${prev.system}.
             make-wrapper = inputs.make-wrapper.packages.${prev.system}.make-wrapper;
+            proot-static = prev.callPackage ./pkgs/proot-static.nix { inherit inputs; };
           })
         ];
         config = {

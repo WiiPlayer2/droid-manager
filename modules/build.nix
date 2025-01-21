@@ -74,6 +74,8 @@ let
       ${mkActivationBlock cfg.early}
       ${mkActivationBlock cfg.default}
       ${mkActivationBlock cfg.late}
+
+      noteEcho "[${target} done]"
     '';
 
   activationScript = mkTargetActivationScript "host" config.build.activation.host;
@@ -124,13 +126,29 @@ in
         script =
           let
             adb = "${pkgs.android-tools}/bin/adb";
+            invocation =
+              if config.build.activation.enableRoot
+              then warn "Device activation script will be executed as root." ''
+                ${adb} shell "su -c /tmp/activate"
+              ''
+              else ''
+                ${adb} shell /tmp/activate
+              '';
           in
           ''
             # TODO: verbose and dry-run
             set -e
+
+            function clear-tmp() {
+              ${adb} shell rm -r /tmp/activate /tmp/dat /tmp/run /tmp/env
+            }
+
+            clear-tmp 2> /dev/null || true
+
             ${adb} push ${bundledActivationScript} /tmp/activate
-            trap "${adb} shell rm -r /tmp/activate /tmp/dat /tmp/run /tmp/env /tmp/.cache" EXIT
-            ${adb} shell /tmp/activate
+            trap "clear-tmp" EXIT
+            ${adb} shell /tmp/activate --extract
+            ${invocation}
           '';
       in
         script;
