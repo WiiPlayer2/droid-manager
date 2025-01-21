@@ -73,11 +73,10 @@
             (
               { pkgs, apks, ... }:
               {
-                environment.apps = with apks; [
-                  f-droid
-                ];
-
-                apps.kvaesitso.enable = true;
+                apps = {
+                  f-droid.enable = true;
+                  kvaesitso.enable = true;
+                };
 
                 build.activation.device.default = {
                   hello-world.script = "echo hello world";
