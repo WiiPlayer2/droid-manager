@@ -77,6 +77,8 @@
                   f-droid
                 ];
 
+                apps.kvaesitso.enable = true;
+
                 build.activation.device.default = {
                   hello-world.script = "echo hello world";
                   hello-world-root = {
