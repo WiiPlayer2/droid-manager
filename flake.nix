@@ -54,7 +54,6 @@
         ./apks
         ./bundlers
         ./flake-modules
-        ./pkgs
 
         ./lib.nix
       ];

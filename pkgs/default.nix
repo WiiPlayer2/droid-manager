@@ -1,7 +1,4 @@
-{
-  perSystem =
-    { pkgs, ... }:
-    {
-      packages.droid-manager = pkgs.callPackage ./droid-manager {};
-    };
-}
+{ inputs
+, system
+}:
+inputs.self.packages.${system}.droid-manager
