@@ -14,8 +14,14 @@ in
 let
   fixedRepo = removeSuffix "/" repo;
   fullUrl = "${repo}/${name}_${revision}.apk";
+  fetchedApk = fetchurl {
+    url = fullUrl;
+    inherit hash;
+  };
+  enrichedApk = fetchedApk // {
+    meta = fetchedApk.meta // {
+      pname = name;
+    };
+  };
 in
-fetchurl {
-  url = fullUrl;
-  inherit hash;
-}
+  enrichedApk
