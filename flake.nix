@@ -67,7 +67,7 @@
         # those are more easily expressed in perSystem.
         droidManagerConfigurations.example = self.lib.droidManagerConfiguration {
           deviceSystem = "aarch64-linux";
-          isRooted = true;
+          isRooted = false;
           modules = [
             (
               { pkgs, apks, ... }:
