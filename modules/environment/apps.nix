@@ -16,7 +16,7 @@ in
         let
           apksPaths = concatStringsSep " " cfg;
           adb = "${pkgs.android-tools}/bin/adb";
-          installCommand = "${adb} install-multi-package -d ${apksPaths}";
+          installCommand = "${adb} install-multi-package -d -t ${apksPaths}";
           pnames =
             concatStringsSep
             "\n"
