@@ -10,7 +10,7 @@
 # TODO: figure out how to build actual apk
 { hostPkgs
 }:
-hostPkgs.x86_64-linux.runCommand "droid-manager-app" {
+hostPkgs.x86_64-linux.runCommand "droid-manager-app.apk" {
   meta.pname = "com.example.droidmanagerapp";
 } ''
   ln -s ${./app-debug.apk} $out
